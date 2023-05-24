@@ -1,54 +1,62 @@
-import React, { useState } from 'react'
-import {TextField,Button,Box,Alert } from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import {TextField,Button,Box,Alert,Typography, CircularProgress } from '@mui/material'
 import { NavLink,useNavigate } from 'react-router-dom'
-
-
+import { useLoginUserMutation } from '../../services/userAuthApi'
+import { getToken, storeToken } from '../../services/LocalStorageService'
+import { useDispatch } from 'react-redux'
+import { setUserToken } from '../../features/authSlice'
 const Login = () => {
 
-  const [error,setError]= useState({
-    status:false,
-    msg:"",
-    type:""
-  });
+  const [server_error,setServerEror]=useState({})
+  const navigate=useNavigate();
+  const [loginUser,{isLoading}]=useLoginUserMutation()
+  const dispatch=useDispatch()
 
-const navigate=useNavigate();
-
-  const handleSubmit=(e)=>{
+  const handleSubmit= async(e)=>{
     e.preventDefault();
 
     const data=new FormData(e.currentTarget);
     const actualData={
         email: data.get('email'),
-        pasasword: data.get('password'),
+        password: data.get('password'),
     }
+    const res=await loginUser(actualData)
+    console.log(res)
 
-    // console.log(actualData);
+    if(res.error){
+      setServerEror(res.error.data.errors)
+  }
+  if(res.data){
+    storeToken(res.data.token)
+    let {access_token}=getToken()
+    dispatch(setUserToken({access_token:access_token}))
+      navigate('/dashbord')
+  }
 
-    if(actualData.email && actualData.pasasword){
-        console.log(actualData);
-        document.getElementById('login-form').reset();
-        setError({status:true,msg:'Login Succes', type:'success'})
-        navigate('/dashbord');
-    }else{
-        setError({status:true,msg:'All Fields are Required', type:'error'})
-    }
 
   }
+  let {access_token}=getToken()
+  useEffect(()=>{
+    dispatch(setUserToken({access_token:access_token}))
+  },[access_token,dispatch])
 
   return (
     <>
 
       <Box component='form' noValidate sx={{mt:1}} id="login-form" onSubmit={handleSubmit}>
         <TextField required margin='normal' fullWidth id='email' name='email' label='Email Address'/>
-        <TextField required margin='normal' fullWidth id='pasword' name='password' label='Password'type='password'/>
+        {server_error.email ? <Typography style={{fontSize:12,color:'red',paddingLeft:10}}>{server_error.email[0]}</Typography> : ""}
+        <TextField required margin='normal' fullWidth id='password' name='password' label='Password'type='password'/>
+        {server_error.password ? <Typography style={{fontSize:12,color:'red',paddingLeft:10}}>{server_error.password[0]}</Typography> : ""}
     
-    
-    <Box textAlign='center'>
-        <Button type='submit' sx={{mt:3,mb:2,px:5}} variant='contained'>Login</Button>
+     <Box textAlign='center'>
+      {isLoading ?<CircularProgress/>: <Button type='submit' sx={{mt:3,mb:2,px:5}} variant='contained'>Login</Button>}  
     </Box>
+    
  
     <NavLink to='/forget'>Forgot Password ?</NavLink>
-    {error.status ? <Alert severity={error.type}>{error.msg}</Alert> : ' ' }
+    {server_error.non_field_errors ?<Alert severity='error'>{server_error.non_field_errors[0]}</Alert>:''}
+    
     
 
     </Box>

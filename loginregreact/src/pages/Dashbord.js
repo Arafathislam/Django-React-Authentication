@@ -2,12 +2,17 @@ import React from 'react'
 import {Button,CssBaseline,Grid,Typography} from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import ChangePassword from './auth/ChangePassword';
+import { removeToken } from '../services/LocalStorageService';
+import { useDispatch } from 'react-redux';
+import { unSetUserToken } from '../features/authSlice';
 
 const Dashbord = () => {
   const navigate=useNavigate();
+  const dispatch=useDispatch()
 
   const handleLogout =()=>{
-    console.log("logout");
+    dispatch(unSetUserToken({access_token:null}))
+    removeToken()
     navigate('/login')
     
   }
