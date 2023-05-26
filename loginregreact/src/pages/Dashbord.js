@@ -7,7 +7,18 @@ import { useDispatch } from 'react-redux';
 import { unSetUserToken } from '../features/authSlice';
 import {useGetLoggedUserQuery} from '../services/userAuthApi';
 import { useState } from 'react';
+import { setUserInfo,unSetUserInfo } from '../features/userSlice';
 const Dashbord = () => {
+
+  const handleLogout =()=>{
+    dispatch(unSetUserInfo({name:"",email:""}))
+    dispatch(unSetUserToken({access_token:null}))
+    removeToken()
+    navigate('/login')
+    
+  }
+
+
   const navigate=useNavigate();
   const dispatch=useDispatch()
   const {access_token}=getToken()
@@ -16,6 +27,9 @@ const Dashbord = () => {
     email: "",
     name: ""
   })
+
+
+
 
   useEffect(()=>{
     if(data && isSuccess){
@@ -26,14 +40,17 @@ const Dashbord = () => {
     }
   },[data,isSuccess])
 
-  console.log(data);
 
-  const handleLogout =()=>{
-    dispatch(unSetUserToken({access_token:null}))
-    removeToken()
-    navigate('/login')
-    
-  }
+  useEffect(()=>{
+    if(data && isSuccess){
+      dispatch(setUserInfo({
+        email:data.email,
+        name:data.name
+      }))
+    }
+  },[data,isSuccess,dispatch])
+
+
 
 
 

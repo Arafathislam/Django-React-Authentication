@@ -7,7 +7,7 @@ import { useDispatch } from 'react-redux'
 import { setUserToken } from '../../features/authSlice'
 const Login = () => {
 
-  const [server_error,setServerEror]=useState({})
+  const [server_error,setServerError]=useState({})
   const navigate=useNavigate();
   const [loginUser,{isLoading}]=useLoginUserMutation()
   const dispatch=useDispatch()
@@ -23,8 +23,8 @@ const Login = () => {
     const res=await loginUser(actualData)
     console.log(res)
 
-    if(res.error){
-      setServerEror(res.error.data.errors)
+  if(res.error){
+      setServerError(res.error.data.errors)
   }
   if(res.data){
     storeToken(res.data.token)
